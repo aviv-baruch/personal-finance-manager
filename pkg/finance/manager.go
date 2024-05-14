@@ -17,11 +17,11 @@ type FinanceManagerImpl struct {
 
 // Adds a new transaction
 func (fm *FinanceManagerImpl) AddTransaction(t Transaction) error {
-	if t.amount <= 0 {
-		return fmt.Errorf("Transaction amount cannot be equal or lower than 0")
+	if t.Amount <= 0 {
+		return &ValidationError{Message: "Transaction amount must be positive", ErrCode: GeneralError}
 	}
-	if t.description == "" {
-		return fmt.Errorf("Transaction description cannot be empty")
+	if t.Description == "" {
+		return &ValidationError{Message: "Transaction description cannot be empty", ErrCode: GeneralError}
 	}
 	fm.Transactions = append(fm.Transactions, t)
 	return nil
@@ -33,11 +33,11 @@ func (fm *FinanceManagerImpl) EditTransaction(id int, updated Transaction) error
 		return err
 	}
 	if id <= 0 {
-		return fmt.Errorf("Transaction id should be positive number")
+		return &ValidationError{Message: "Transaction id should be positive number", ErrCode: GeneralError}
 	}
 
 	for i := 0; i < len(fm.Transactions); i++ {
-		if fm.Transactions[i].id == id {
+		if fm.Transactions[i].ID == id {
 			fm.Transactions[i] = updated
 			return nil
 		}
@@ -54,7 +54,7 @@ func (fm *FinanceManagerImpl) DeleteTransaction(id int) error {
 	}
 
 	for i := 0; i < len(fm.Transactions); i++ {
-		if fm.Transactions[i].id == id {
+		if fm.Transactions[i].ID == id {
 			fm.Transactions = append(fm.Transactions[:i], fm.Transactions[i+1:]...) //slice around the elemnt
 			return nil
 		}
@@ -72,11 +72,11 @@ func (fm *FinanceManagerImpl) CalculateBalance() (float64, error) {
 		return 0, fmt.Errorf("Transaction list is empty")
 	}
 	for i := 0; i < len(fm.Transactions); i++ {
-		if fm.Transactions[i].transactionType == Income {
-			balance += fm.Transactions[i].amount
+		if fm.Transactions[i].TransactionType == Income {
+			balance += fm.Transactions[i].Amount
 		}
-		if fm.Transactions[i].transactionType == Expense {
-			balance -= fm.Transactions[i].amount
+		if fm.Transactions[i].TransactionType == Expense {
+			balance -= fm.Transactions[i].Amount
 		}
 	}
 	return balance, nil
@@ -85,17 +85,17 @@ func (fm *FinanceManagerImpl) CalculateBalance() (float64, error) {
 // This function handles basic error checking for transactions
 // TODO: move to errors
 func ValidateTransaction(t Transaction) error {
-	if t.transactionType > 1 || t.transactionType < 0 {
-		return fmt.Errorf("Couldn't find transaction type")
+	if t.TransactionType > 1 || t.TransactionType < 0 {
+		return &ValidationError{Message: "Couldn't find transaction type", ErrCode: GeneralError}
 	}
-	if t.id <= 0 {
-		return fmt.Errorf("ID cannot be negative")
+	if t.ID <= 0 {
+		return &ValidationError{Message: "ID cannot be negative", ErrCode: GeneralError}
 	}
-	if t.amount <= 0 {
-		return fmt.Errorf("Transaction amount cannot be equal or lower than 0")
+	if t.Amount <= 0 {
+		return &ValidationError{Message: "Transaction amount cannot be equal or lower than 0", ErrCode: GeneralError}
 	}
-	if t.description == "" {
-		return fmt.Errorf("Transaction description cannot be empty")
+	if t.Description == "" {
+		return &ValidationError{Message: "Transaction description cannot be empty", ErrCode: GeneralError}
 	}
 	return nil
 }
