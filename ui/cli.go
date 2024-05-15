@@ -22,6 +22,8 @@ func HandleCommand(input string, fm finance.FinanceManager) error {
 	switch command {
 	case "add":
 		return handleAdd(args, fm)
+	case "edit":
+		return handleEdit(args, fm)
 	default:
 		return errors.New("unknown command")
 	}
@@ -50,7 +52,28 @@ func handleAdd(args []string, fm finance.FinanceManager) error {
 }
 
 func handleEdit(args []string, fm finance.FinanceManager) error {
+	if len(args) != 3 {
+		return errors.New("usage: add <id> <amount> <description>")
+	}
 
+	transactionID, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		return errors.New("invalid ID")
+	}
+
+	updatedAmount, err := strconv.ParseFloat(args[1], 64)
+	updatedTransaction := finance.Transaction{
+		ID:              transactionID,
+		Amount:          updatedAmount,
+		Description:     args[2],
+		TransactionType: 0,
+		Date:            time.Now(),
+	}
+
+	fm.EditTransaction(transactionID, updatedTransaction)
+	if err != nil {
+		return errors.New("Edit went wrong")
+	}
 	return nil
 }
 

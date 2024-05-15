@@ -8,17 +8,18 @@ import (
 
 // App's core
 type FinanceManager interface {
-	ShowOverallItems() int
-	AddTransaction(t Transaction) error                // Adds new transaction
-	EditTransaction(id int, updated Transaction) error //Edits existing transaction based on ID
-	DeleteTransaction(id int) error                    //Delets transaction based on ID
-	CalculateBalance() (float64, error)                //calculates the balance from all transactions made
+	GetTransactions() []Transaction                      // Returns transactions arr
+	ShowOverallItems() int64                             // Returns amount of items in Transactions array
+	AddTransaction(t Transaction) error                  // Adds new transaction
+	EditTransaction(id int64, updated Transaction) error //Edits existing transaction based on ID
+	DeleteTransaction(id int64) error                    //Delets transaction based on ID
+	CalculateBalance() (float64, error)                  //calculates the balance from all transactions made
 }
 
 // App's core
 type FinanceManagerImpl struct {
 	Transactions []Transaction
-	OverallItems int
+	OverallItems int64
 }
 
 func NewFinanceManagerImpl() *FinanceManagerImpl {
@@ -28,8 +29,12 @@ func NewFinanceManagerImpl() *FinanceManagerImpl {
 	}
 }
 
-func (fm *FinanceManagerImpl) ShowOverallItems() int {
+func (fm *FinanceManagerImpl) ShowOverallItems() int64 {
 	return fm.OverallItems
+}
+
+func (fm *FinanceManagerImpl) GetTransactions() []Transaction {
+	return fm.Transactions
 }
 
 // Adds a new transaction
@@ -44,13 +49,16 @@ func (fm *FinanceManagerImpl) AddTransaction(t Transaction) error {
 	fm.OverallItems++
 
 	fmt.Printf("Added $%.2f due to %s on %s\n", t.Amount, t.Description, t.Date.Format("2006-01-02"))
+	fmt.Printf("Transaction id: %d\n", t.ID)
+
 	balance, _ := fm.CalculateBalance()                // Call CalculateBalance method on fm object
 	fmt.Printf("Current balance is: $%.2f\n", balance) // Print the balance
 	return nil
 }
 
 // Edits existing transaction
-func (fm *FinanceManagerImpl) EditTransaction(id int, updated Transaction) error {
+func (fm *FinanceManagerImpl) EditTransaction(id int64, updated Transaction) error {
+	fmt.Printf("I'm in edit")
 	if err := ValidateTransaction(updated); err != nil {
 		return err
 	}
@@ -58,8 +66,10 @@ func (fm *FinanceManagerImpl) EditTransaction(id int, updated Transaction) error
 		return &utils.ValidationError{Message: "Transaction id should be positive number", ErrCode: utils.GeneralError}
 	}
 
-	for i := 0; i < len(fm.Transactions); i++ {
+	for i := 0; i < len(fm.Transactions); i++ { //TODO
+		fmt.Printf("run %d", i)
 		if fm.Transactions[i].ID == id {
+			fmt.Printf("Found")
 			fm.Transactions[i] = updated
 			return nil
 		}
@@ -74,7 +84,7 @@ func (fm *FinanceManagerImpl) EditTransaction(id int, updated Transaction) error
 
 // This function used to delete existing transaction out of the ones belongs to the finance manager
 // Recieves an int (which is the ID of the transaction) and return error if exists
-func (fm *FinanceManagerImpl) DeleteTransaction(id int) error {
+func (fm *FinanceManagerImpl) DeleteTransaction(id int64) error {
 	if id <= 0 {
 		return &utils.ValidationError{
 			Message: "Transaction id should be positive number",
