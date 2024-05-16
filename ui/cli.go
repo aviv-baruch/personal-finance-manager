@@ -2,6 +2,7 @@ package ui
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +25,10 @@ func HandleCommand(input string, fm finance.FinanceManager) error {
 		return handleAdd(args, fm)
 	case "edit":
 		return handleEdit(args, fm)
+	case "delete":
+		return handleDelete(args, fm)
+	case "calculate":
+		return handleCalculate(args, fm)
 	default:
 		return errors.New("unknown command")
 	}
@@ -70,19 +75,31 @@ func handleEdit(args []string, fm finance.FinanceManager) error {
 		Date:            time.Now(),
 	}
 
-	fm.EditTransaction(transactionID, updatedTransaction)
-	if err != nil {
-		return errors.New("Edit went wrong")
-	}
-	return nil
+	return fm.EditTransaction(transactionID, updatedTransaction)
 }
 
 func handleDelete(args []string, fm finance.FinanceManager) error {
+	if len(args) != 1 {
+		return errors.New("usage: delete <id>")
+	}
 
-	return nil
+	transactionID, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		return errors.New("invalid ID")
+	}
+
+	return fm.DeleteTransaction(transactionID)
 }
 
 func handleCalculate(args []string, fm finance.FinanceManager) error {
-
-	return nil
+	if len(args) > 0 {
+		return errors.New("usage: calculate")
+	}
+	balance, err := fm.CalculateBalance()
+	if err != nil {
+		return errors.New("invalid amount")
+	} else {
+		fmt.Printf("Current balance is: $%.2f\n", balance) // Print the balance
+		return nil
+	}
 }

@@ -29,11 +29,11 @@ func NewFinanceManagerImpl() *FinanceManagerImpl {
 	}
 }
 
-func (fm *FinanceManagerImpl) ShowOverallItems() int64 {
+func (fm FinanceManagerImpl) ShowOverallItems() int64 {
 	return fm.OverallItems
 }
 
-func (fm *FinanceManagerImpl) GetTransactions() []Transaction {
+func (fm FinanceManagerImpl) GetTransactions() []Transaction {
 	return fm.Transactions
 }
 
@@ -58,19 +58,15 @@ func (fm *FinanceManagerImpl) AddTransaction(t Transaction) error {
 
 // Edits existing transaction
 func (fm *FinanceManagerImpl) EditTransaction(id int64, updated Transaction) error {
-	fmt.Printf("I'm in edit")
 	if err := ValidateTransaction(updated); err != nil {
 		return err
 	}
-	if id <= 0 {
-		return &utils.ValidationError{Message: "Transaction id should be positive number", ErrCode: utils.GeneralError}
-	}
 
 	for i := 0; i < len(fm.Transactions); i++ { //TODO
-		fmt.Printf("run %d", i)
 		if fm.Transactions[i].ID == id {
-			fmt.Printf("Found")
 			fm.Transactions[i] = updated
+			balance, _ := fm.CalculateBalance()
+			fmt.Printf("Current balance is: $%.2f\n", balance) // Print the balance
 			return nil
 		}
 	}
@@ -95,6 +91,8 @@ func (fm *FinanceManagerImpl) DeleteTransaction(id int64) error {
 	for i := 0; i < len(fm.Transactions); i++ {
 		if fm.Transactions[i].ID == id {
 			fm.Transactions = append(fm.Transactions[:i], fm.Transactions[i+1:]...) //slice around the elemnt
+			balance, _ := fm.CalculateBalance()
+			fmt.Printf("Current balance is: $%.2f\n", balance) // Print the balance
 			return nil
 		}
 	}
@@ -135,7 +133,7 @@ func ValidateTransaction(t Transaction) error {
 			Message: "Couldn't find transaction type",
 			ErrCode: utils.GeneralError}
 	}
-	if t.ID <= 0 {
+	if t.ID < 0 {
 		return &utils.ValidationError{
 			Message: "ID cannot be negative",
 			ErrCode: utils.GeneralError}
