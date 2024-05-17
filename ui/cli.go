@@ -1,20 +1,23 @@
 package ui
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/aviv-baruch/personal-finance-manager/pkg/finance"
+	"github.com/aviv-baruch/personal-finance-manager/pkg/utils"
 )
 
 // HandleCommand processes a single command input
 func HandleCommand(input string, fm finance.FinanceManager) error {
 	parts := strings.Fields(input)
 	if len(parts) == 0 {
-		return errors.New("no input provided")
+		return &utils.ValidationError{
+			Message: "No input received",
+			ErrCode: utils.InvalidUsage,
+		}
 	}
 
 	command := parts[0]
@@ -30,19 +33,28 @@ func HandleCommand(input string, fm finance.FinanceManager) error {
 	case "calculate":
 		return handleCalculate(args, fm)
 	default:
-		return errors.New("unknown command")
+		return &utils.ValidationError{
+			Message: "Unkown Command",
+			ErrCode: utils.InvalidUsage,
+		}
 	}
 }
 
 // handleAdd parses the arguments for the 'add' command and calls the finance manager
 func handleAdd(args []string, fm finance.FinanceManager) error {
 	if len(args) != 2 {
-		return errors.New("usage: add <amount> <description>")
+		return &utils.ValidationError{
+			Message: "usage: add <amount> <description>",
+			ErrCode: utils.InvalidUsage,
+		}
 	}
 
 	amount, err := strconv.ParseFloat(args[0], 64)
 	if err != nil {
-		return errors.New("invalid amount")
+		return &utils.ValidationError{
+			Message: "Invalid Amount entered",
+			ErrCode: utils.InvalidData,
+		}
 	}
 
 	description := args[1]
@@ -58,15 +70,22 @@ func handleAdd(args []string, fm finance.FinanceManager) error {
 
 func handleEdit(args []string, fm finance.FinanceManager) error {
 	if len(args) != 3 {
-		return errors.New("usage: add <id> <amount> <description>")
+		return &utils.ValidationError{
+			Message: "usage: add <id> <amount> <description>",
+			ErrCode: utils.InvalidData,
+		}
 	}
 
 	transactionID, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
-		return errors.New("invalid ID")
+		return &utils.ValidationError{
+			Message: "Invalid ID",
+			ErrCode: utils.InvalidData,
+		}
 	}
 
-	updatedAmount, err := strconv.ParseFloat(args[1], 64)
+	fmt.Printf("Editing transacton ID %d with amount %f with description %s\n", transactionID, fm.GetTransactions()[transactionID].Amount, fm.GetTransactions()[transactionID].Description)
+	updatedAmount, _ := strconv.ParseFloat(args[1], 64)
 	updatedTransaction := finance.Transaction{
 		ID:              transactionID,
 		Amount:          updatedAmount,
@@ -80,12 +99,18 @@ func handleEdit(args []string, fm finance.FinanceManager) error {
 
 func handleDelete(args []string, fm finance.FinanceManager) error {
 	if len(args) != 1 {
-		return errors.New("usage: delete <id>")
+		return &utils.ValidationError{
+			Message: "usage: delete <id>",
+			ErrCode: utils.InvalidData,
+		}
 	}
 
 	transactionID, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
-		return errors.New("invalid ID")
+		return &utils.ValidationError{
+			Message: "Invalid ID",
+			ErrCode: utils.InvalidData,
+		}
 	}
 
 	return fm.DeleteTransaction(transactionID)
@@ -93,11 +118,18 @@ func handleDelete(args []string, fm finance.FinanceManager) error {
 
 func handleCalculate(args []string, fm finance.FinanceManager) error {
 	if len(args) > 0 {
-		return errors.New("usage: calculate")
+		return &utils.ValidationError{
+			Message: "usage: calculate",
+			ErrCode: utils.InvalidData,
+		}
 	}
 	balance, err := fm.CalculateBalance()
 	if err != nil {
-		return errors.New("invalid amount")
+		return &utils.ValidationError{
+			Message: "Transaction list is empty",
+			ErrCode: utils.InvalidData,
+		}
+
 	} else {
 		fmt.Printf("Current balance is: $%.2f\n", balance) // Print the balance
 		return nil

@@ -40,10 +40,16 @@ func (fm FinanceManagerImpl) GetTransactions() []Transaction {
 // Adds a new transaction
 func (fm *FinanceManagerImpl) AddTransaction(t Transaction) error {
 	if t.Amount <= 0 {
-		return &utils.ValidationError{Message: "Transaction amount must be positive", ErrCode: utils.GeneralError}
+		return &utils.ValidationError{
+			Message: "Transaction amount must be positive",
+			ErrCode: utils.GeneralError,
+		}
 	}
 	if t.Description == "" {
-		return &utils.ValidationError{Message: "Transaction description cannot be empty", ErrCode: utils.GeneralError}
+		return &utils.ValidationError{
+			Message: "Transaction description cannot be empty",
+			ErrCode: utils.GeneralError,
+		}
 	}
 	fm.Transactions = append(fm.Transactions, t)
 	fm.OverallItems++
@@ -65,6 +71,8 @@ func (fm *FinanceManagerImpl) EditTransaction(id int64, updated Transaction) err
 	for i := 0; i < len(fm.Transactions); i++ { //TODO
 		if fm.Transactions[i].ID == id {
 			fm.Transactions[i] = updated
+			fmt.Printf("new values of transacton ID %d with amount %f with description %s\n", fm.Transactions[i].ID, fm.Transactions[i].Amount, fm.Transactions[i].Description)
+
 			balance, _ := fm.CalculateBalance()
 			fmt.Printf("Current balance is: $%.2f\n", balance) // Print the balance
 			return nil
@@ -81,16 +89,17 @@ func (fm *FinanceManagerImpl) EditTransaction(id int64, updated Transaction) err
 // This function used to delete existing transaction out of the ones belongs to the finance manager
 // Recieves an int (which is the ID of the transaction) and return error if exists
 func (fm *FinanceManagerImpl) DeleteTransaction(id int64) error {
-	if id <= 0 {
+	if id < 0 {
 		return &utils.ValidationError{
 			Message: "Transaction id should be positive number",
-			ErrCode: utils.GeneralError}
-
+			ErrCode: utils.InvalidData}
 	}
 
 	for i := 0; i < len(fm.Transactions); i++ {
 		if fm.Transactions[i].ID == id {
 			fm.Transactions = append(fm.Transactions[:i], fm.Transactions[i+1:]...) //slice around the elemnt
+
+			fmt.Printf("Deleted transaciton ID #%d\n", id) // Print the balance
 			balance, _ := fm.CalculateBalance()
 			fmt.Printf("Current balance is: $%.2f\n", balance) // Print the balance
 			return nil
@@ -131,22 +140,22 @@ func ValidateTransaction(t Transaction) error {
 	if t.TransactionType > 1 || t.TransactionType < 0 {
 		return &utils.ValidationError{
 			Message: "Couldn't find transaction type",
-			ErrCode: utils.GeneralError}
+			ErrCode: utils.InvalidData}
 	}
 	if t.ID < 0 {
 		return &utils.ValidationError{
 			Message: "ID cannot be negative",
-			ErrCode: utils.GeneralError}
+			ErrCode: utils.InvalidData}
 	}
 	if t.Amount <= 0 {
 		return &utils.ValidationError{
 			Message: "Transaction amount cannot be equal or lower than 0",
-			ErrCode: utils.GeneralError}
+			ErrCode: utils.InvalidData}
 	}
 	if t.Description == "" {
 		return &utils.ValidationError{
 			Message: "Transaction description cannot be empty",
-			ErrCode: utils.GeneralError}
+			ErrCode: utils.InvalidData}
 	}
 	return nil
 }

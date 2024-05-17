@@ -8,6 +8,8 @@ type ErrorCode int // type used as enum for transaction type
 
 const (
 	GeneralError ErrorCode = iota // iota starts at 0
+	InvalidUsage
+	InvalidData
 )
 
 type ValidationError struct {
